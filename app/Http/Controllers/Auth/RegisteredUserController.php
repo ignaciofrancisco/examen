@@ -10,41 +10,51 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use Illuminate\View\View;
+use Illuminate\Database\QueryException;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
-    public function create(): View
+    public function create()
     {
         return view('auth.register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'rut' => ['required', 'string', 'max:12'], // Validación básica del RUT
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        // Construir el email automáticamente
+        $email = strtolower($request->nombre . '.' . $request->apellido . '@ventasfix.cl');
 
-        event(new Registered($user));
+        try {
+            $user = User::create([
+                'nombre' => $request->nombre,
+                'apellido' => $request->apellido,
+                'rut' => $request->rut,
+                'email' => $email,
+                'password' => Hash::make($request->password),
+            ]);
 
-        Auth::login($user);
+            event(new Registered($user));
+            Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+            return redirect()->route('dashboard');
+
+        } catch (QueryException $e) {
+            // Verificar si es un error de duplicado (RUT único)
+            if ($e->getCode() == 23000) { // Código SQL de violación de llave única
+                return back()->withInput()
+                             ->with('error', 'El RUT ya está siendo utilizado.');
+            }
+
+            // Otro tipo de error
+            return back()->withInput()
+                         ->with('error', 'Ocurrió un error al registrar el usuario.');
+        }
     }
 }
