@@ -1,47 +1,66 @@
 @extends('layouts.app')
 
-@section('title','Dashboard')
+@section('title', 'Dashboard')
 
 @section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="fw-bold py-3 mb-4">Dashboard</h4>
+<div class="row mb-4">
+    <!-- Bienvenido Card -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+            <h4 class="fw-bold mb-2">
+    Bienvenido, {{ auth()->user()->nombre ?? '' }} {{ auth()->user()->apellido ?? '' }}!
+</h4>
 
-    <div class="row g-4">
-        <!-- Usuarios -->
-        <div class="col-md-4">
-            <div class="card text-white bg-primary">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                    <div>
-                        <h5 class="card-title text-white">Usuarios</h5>
-                        <p class="card-text display-5 text-white">{{ $usuarios }}</p>
-                    </div>
-                    <i class="ti ti-user ti-3x text-white"></i>
+                <p class="mb-0">
+                    Este es tu panel de control. Aquí puedes ver rápidamente la cantidad de usuarios, clientes y productos registrados.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Usuarios Card -->
+    <div class="col-lg-4 col-md-6 col-12 mb-4">
+        <div class="card">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar bg-label-primary me-3">
+                    <i class="ti ti-users ti-lg"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0">Usuarios</h6>
+                    <h4 class="fw-bold mb-0">{{ $usuarios_count ?? 0 }}</h4>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Productos -->
-        <div class="col-md-4">
-            <div class="card text-white bg-success">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                    <div>
-                        <h5 class="card-title text-white">Productos</h5>
-                        <p class="card-text display-5 text-white">{{ $productos }}</p>
-                    </div>
-                    <i class="ti ti-box ti-3x text-white"></i>
+    <!-- Clientes Card -->
+    <div class="col-lg-4 col-md-6 col-12 mb-4">
+        <div class="card">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar bg-label-success me-3">
+                    <i class="ti ti-user-check ti-lg"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0">Clientes</h6>
+                    <h4 class="fw-bold mb-0">{{ $clientes_count ?? 0 }}</h4>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Clientes -->
-        <div class="col-md-4">
-            <div class="card text-white bg-warning">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                    <div>
-                        <h5 class="card-title text-white">Clientes</h5>
-                        <p class="card-text display-5 text-white">{{ $clientes }}</p>
-                    </div>
-                    <i class="ti ti-users ti-3x text-white"></i>
+    <!-- Productos Card -->
+    <div class="col-lg-4 col-md-6 col-12 mb-4">
+        <div class="card">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar bg-label-warning me-3">
+                    <i class="ti ti-package ti-lg"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0">Productos</h6>
+                    <h4 class="fw-bold mb-0">{{ $productos_count ?? 0 }}</h4>
                 </div>
             </div>
         </div>
