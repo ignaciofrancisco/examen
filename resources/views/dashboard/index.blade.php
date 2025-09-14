@@ -21,8 +21,9 @@
 </div>
 
 <div class="row">
-    <!-- Usuarios Card -->
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
+<!-- Usuarios Card -->
+<div class="col-lg-4 col-md-6 col-12 mb-4">
+    <a href="{{ route('users.index') }}"  style="text-decoration: none; color: inherit;">
         <div class="card">
             <div class="card-body d-flex align-items-center">
                 <div class="avatar bg-label-primary me-3">
@@ -34,7 +35,9 @@
                 </div>
             </div>
         </div>
-    </div>
+    </a>
+</div>
+
 
     <!-- Clientes Card -->
     <div class="col-lg-4 col-md-6 col-12 mb-4">
