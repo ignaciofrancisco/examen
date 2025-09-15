@@ -8,40 +8,110 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Support\Facades\Storage;
+use Exception;
 
 class ProductController extends Controller
 {
+    // Listar productos con paginación
     public function index()
     {
-        return response()->json(Product::paginate(15));
+        try {
+            $products = Product::paginate(15);
+            return response()->json(['success' => true, 'data' => $products], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al listar productos',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
+    // Crear producto
     public function store(StoreProductRequest $request)
     {
-        $data = $request->validated();
+        try {
+            $data = $request->validated();
 
-        // manejar imagen
-        if ($request->hasFile('imagen')) {
-            $path = $request->file('imagen')->store('products', 'public');
-            $data['imagen_url'] = asset('storage/' . $path);
+            // manejar imagen si existe
+            if ($request->hasFile('imagen')) {
+                $path = $request->file('imagen')->store('products', 'public');
+                $data['imagen_url'] = asset('storage/' . $path);
+            }
+
+            $product = Product::create($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Producto creado',
+                'data' => $product
+            ], 201);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear producto',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $product = Product::create($data);
-
-        return response()->json(['message' => 'Producto creado', 'data' => $product], 201);
     }
 
+    // Mostrar producto
     public function show(Product $product)
     {
-        return response()->json($product);
+        try {
+            return response()->json(['success' => true, 'data' => $product], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener producto',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
+    // Actualizar producto
     public function update(UpdateProductRequest $request, Product $product)
     {
-        $data = $request->validated();
+        try {
+            $data = $request->validated();
 
-        if ($request->hasFile('imagen')) {
-            // eliminar imagen anterior si existe (opcional: solo si es storage local)
+            if ($request->hasFile('imagen')) {
+                // eliminar imagen anterior si existe
+                try {
+                    $oldUrl = $product->imagen_url;
+                    if ($oldUrl && str_contains($oldUrl, '/storage/')) {
+                        $oldPath = str_replace(asset('storage/'), '', $oldUrl);
+                        Storage::disk('public')->delete($oldPath);
+                    }
+                } catch (\Throwable $e) {
+                    // no bloquear si falla el borrado
+                }
+
+                $path = $request->file('imagen')->store('products', 'public');
+                $data['imagen_url'] = asset('storage/' . $path);
+            }
+
+            $product->update($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Producto actualizado',
+                'data' => $product
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar producto',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Eliminar producto
+    public function destroy(Product $product)
+    {
+        try {
+            // eliminar imagen si corresponde
             try {
                 $oldUrl = $product->imagen_url;
                 if ($oldUrl && str_contains($oldUrl, '/storage/')) {
@@ -49,29 +119,21 @@ class ProductController extends Controller
                     Storage::disk('public')->delete($oldPath);
                 }
             } catch (\Throwable $e) {
-                // no bloquear si falla borrado
+                // ignorar error de borrado
             }
 
-            $path = $request->file('imagen')->store('products', 'public');
-            $data['imagen_url'] = asset('storage/' . $path);
+            $product->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Producto eliminado'
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar producto',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $product->update($data);
-        return response()->json(['message' => 'Producto actualizado', 'data' => $product]);
-    }
-
-    public function destroy(Product $product)
-    {
-        // eliminar imagen si corresponde
-        try {
-            $oldUrl = $product->imagen_url;
-            if ($oldUrl && str_contains($oldUrl, '/storage/')) {
-                $oldPath = str_replace(asset('storage/'), '', $oldUrl);
-                Storage::disk('public')->delete($oldPath);
-            }
-        } catch (\Throwable $e) {}
-
-        $product->delete();
-        return response()->json(['message' => 'Producto eliminado']);
     }
 }
