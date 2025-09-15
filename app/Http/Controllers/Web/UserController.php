@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Exception;
 
 class UserController extends Controller
 {
@@ -16,55 +18,116 @@ class UserController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    // Listar usuarios con búsqueda opcional por RUT
+    public function index(Request $request)
     {
-        $users = User::orderBy('id', 'desc')->paginate(15);
-        return view('users.index', compact('users'));
+        try {
+            $query = User::query();
+
+            // Filtro por RUT si viene en el request
+            if ($request->has('search') && $request->search != '') {
+                $query->where('rut', 'like', '%' . $request->search . '%');
+            }
+
+            $users = $query->orderBy('id', 'desc')->paginate(15)->withQueryString();
+
+            return view('users.index', compact('users'));
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Error al cargar los usuarios: ' . $e->getMessage());
+        }
     }
 
+    // Formulario de creación
     public function create()
     {
         return view('users.create');
     }
 
-    public function store(StoreUserRequest $request)
+    // Guardar usuario
+    public function store(Request $request)
     {
-        $data = $request->validated();
-        $data['password'] = Hash::make($data['password']);
-        User::create($data);
+        $request->validate([
+            'rut' => 'required|unique:users,rut',
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'required|string|max:255',
+            'role' => 'required|in:admin,user',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
 
-        return redirect()->route('users.index')->with('success', 'Usuario creado correctamente.');
+        try {
+            DB::beginTransaction();
+
+            $email = strtolower($request->nombre) . '.' . strtolower($request->apellido) . '@ventasfix.cl';
+
+            User::create([
+                'rut' => $request->rut,
+                'nombre' => $request->nombre,
+                'apellido' => $request->apellido,
+                'email' => $email,
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('users.index')->with('success', 'Usuario creado correctamente.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error', 'Error al crear el usuario: ' . $e->getMessage());
+        }
     }
 
+    // Mostrar usuario (redirige a edit para no duplicar vista)
     public function show(User $user)
     {
-        // redirigimos al edit para no duplicar vista
         return redirect()->route('users.edit', $user);
     }
 
+    // Formulario de edición
     public function edit(User $user)
     {
         return view('users.edit', compact('user'));
     }
 
+    // Actualizar usuario
     public function update(UpdateUserRequest $request, User $user)
     {
-        $data = $request->validated();
+        try {
+            DB::beginTransaction();
 
-        if (!empty($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        } else {
-            unset($data['password']);
+            $data = $request->validated();
+
+            if (!empty($data['password'])) {
+                $data['password'] = Hash::make($data['password']);
+            } else {
+                unset($data['password']);
+            }
+
+            $user->update($data);
+
+            DB::commit();
+
+            return redirect()->route('users.index')->with('success', 'Usuario actualizado correctamente.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error', 'Error al actualizar el usuario: ' . $e->getMessage());
         }
-
-        $user->update($data);
-
-        return redirect()->route('users.index')->with('success', 'Usuario actualizado correctamente.');
     }
 
+    // Eliminar usuario
     public function destroy(User $user)
     {
-        $user->delete();
-        return redirect()->route('users.index')->with('success', 'Usuario eliminado correctamente.');
+        try {
+            DB::beginTransaction();
+
+            $user->delete();
+
+            DB::commit();
+
+            return redirect()->route('users.index')->with('success', 'Usuario eliminado correctamente.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Error al eliminar el usuario: ' . $e->getMessage());
+        }
     }
 }

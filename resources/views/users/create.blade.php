@@ -29,18 +29,27 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
-        @error('email') <div class="text-danger small">{{ $message }}</div> @enderror
+        <label class="form-label">Rol</label>
+        <select name="role" class="form-select" required>
+          <option value="">Selecciona un rol</option>
+          <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+          <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>Usuario</option>
+        </select>
+        @error('role') <div class="text-danger small">{{ $message }}</div> @enderror
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Password</label>
+        <label class="form-label">Contraseña</label>
         <input type="password" name="password" class="form-control" required>
         @error('password') <div class="text-danger small">{{ $message }}</div> @enderror
       </div>
 
-      <button class="btn btn-primary">Crear</button>
+      <div class="mb-3">
+        <label class="form-label">Confirmar Contraseña</label>
+        <input type="password" name="password_confirmation" class="form-control" required>
+      </div>
+
+      <button class="btn btn-primary">Crear Usuario</button>
       <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">Cancelar</a>
     </form>
   </div>

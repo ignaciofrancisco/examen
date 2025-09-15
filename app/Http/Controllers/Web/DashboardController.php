@@ -7,23 +7,33 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Client;
 use App\Models\Product;
-use Illuminate\Support\Facades\Auth; // ✅ Importar Auth
+use Illuminate\Support\Facades\Auth;
+use Exception;
 
 class DashboardController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     public function index()
     {
-        $usuarios_count = User::count();
-        $clientes_count = Client::count();
-        $productos_count = Product::count();
+        try {
+            $totalUsers = User::count();
+            $totalClients = Client::count();
+            $totalProducts = Product::count();
 
-        $user = Auth::user(); // 👈 Ahora Intelephense reconoce el método
+            $user = Auth::user();
 
-        return view('dashboard.index', compact(
-            'usuarios_count',
-            'clientes_count',
-            'productos_count',
-            'user'
-        ));
+            return view('dashboard.index', compact(
+                'totalUsers',
+                'totalClients',
+                'totalProducts',
+                'user'
+            ));
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Error al cargar el dashboard: ' . $e->getMessage());
+        }
     }
 }

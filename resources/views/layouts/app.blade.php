@@ -9,7 +9,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>@yield('title', 'Dashboard') - VentasFix</title>
+    <title>@yield('title', '') - VentasFix</title>
 
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.ico') }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -39,25 +39,30 @@
         <!-- Navbar -->
         <nav class="layout-navbar navbar navbar-expand-xl align-items-center bg-navbar-theme" id="layout-navbar">
             <div class="container-xxl">
-                <div class="navbar-brand app-brand demo d-none d-xl-flex py-0 me-4">
-                    <a href="{{ route('dashboard') }}" class="app-brand-link">
+                <!-- Brand -->
+                <div class="navbar-brand app-brand demo py-0 me-4">
+                    <a href="{{ route('dashboard') }}" class="app-brand-link d-flex align-items-center">
                         <span class="app-brand-logo demo">
-                            <!-- SVG Logo -->
+                            <!-- SVG Logo aquí -->
                         </span>
-                        <span class="app-brand-text demo menu-text fw-bold">VentasFix</span>
-                    </a>
-
-                    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-xl-none">
-                        <i class="ti ti-x ti-md align-middle"></i>
+                        <span class="app-brand-text demo menu-text fw-bold">
+                            VentasFix
+                            @hasSection('title')
+                                - @yield('title')
+                            @endif
+                        </span>
                     </a>
                 </div>
+                <!-- /Brand -->
 
+                <!-- Toggle para pantallas pequeñas -->
                 <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
                     <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
                         <i class="ti ti-menu-2 ti-md"></i>
                     </a>
                 </div>
 
+                <!-- Right Navbar -->
                 <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
                     <ul class="navbar-nav flex-row align-items-center ms-auto">
                         <!-- User Dropdown -->
@@ -78,9 +83,9 @@
                                                 </div>
                                             </div>
                                             <div class="flex-grow-1">
-                                            <h4 class="fw-bold mb-2">
-                                              Bienvenido, {{ auth()->user()->nombre ?? '' }} {{ auth()->user()->apellido ?? '' }}!
-                                                        </h4>
+                                                <h4 class="fw-bold mb-2">
+                                                    Bienvenido, {{ auth()->user()->nombre ?? '' }} {{ auth()->user()->apellido ?? '' }}!
+                                                </h4>
                                                 <small class="text-muted">
                                                     {{ ucfirst(auth()->user()->role ?? 'Usuario') }}
                                                 </small>
@@ -108,6 +113,7 @@
                         <!--/ User Dropdown -->
                     </ul>
                 </div>
+                <!-- /Right Navbar -->
             </div>
         </nav>
         <!-- / Navbar -->

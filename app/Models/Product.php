@@ -8,13 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
-
     protected $fillable = [
         'sku',
         'nombre',
         'descripcion_corta',
         'descripcion_larga',
-        'imagen_url',
+        'imagen', // <-- aquí
         'precio_neto',
         'precio_venta',
         'stock_actual',
@@ -22,6 +21,7 @@ class Product extends Model
         'stock_bajo',
         'stock_alto'
     ];
+    
 
     // Calcula precio_venta con IVA 19% antes de guardar
     protected static function boot()
